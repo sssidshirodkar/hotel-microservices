@@ -1,0 +1,53 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: api-gateway
+
+  # CRITICAL FOR NEW VERSIONS:
+  main:
+    web-application-type: reactive  # This forces Spring to parse properties reactively
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # NEW CONFIGURATION PROPERTY PREFIX REQUIRED BY YOUR VERSION
+          discovery:
+            locator:
+              enabled: false
+          routes:
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/users/**
+
+            - id: rating-service
+              uri: lb://rating-service
+              predicates:
+                - Path=/ratings/**
+
+            - id: hotel-service
+              uri: lb://hotel-service
+              predicates:
+                - Path=/hotels/**
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoint:
+    gateway:
+      enabled: true  # CRITICAL: This turns on the internal gateway mapping bean
+  endpoints:
+    web:
+      exposure:
+        include: "gateway,health,info"
